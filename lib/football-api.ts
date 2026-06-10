@@ -1,3 +1,5 @@
+import type { Team } from "./types";
+
 const BASE_URL = "https://api.football-data.org/v4";
 const WC_ID = "WC"; // World Cup competition code
 
@@ -31,10 +33,22 @@ export async function getTodayMatches() {
   return fetchFD(`/competitions/${WC_ID}/matches?dateFrom=${today}&dateTo=${today}`, 30_000);
 }
 
+export async function getMatch(id: string) {
+  return fetchFD(`/competitions/${WC_ID}/matches/${id}`, 30_000);
+}
+
 export async function getStandings() {
   return fetchFD(`/competitions/${WC_ID}/standings`, 5 * 60_000); // 5 min cache
 }
 
 export async function getTeams() {
   return fetchFD(`/competitions/${WC_ID}/teams`, 60 * 60_000); // 1 hour cache
+}
+
+export async function getTeam(id: string): Promise<Team> {
+  const data = await getTeams();
+  const teams = (data as { teams: Team[] }).teams;
+  const team = teams.find((t: Team) => t.id === Number(id));
+  if (!team) throw new Error(`Team ${id} not found`);
+  return team;
 }

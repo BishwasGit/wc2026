@@ -1,0 +1,56 @@
+"use client";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+
+function NavInner() {
+  const searchParams = useSearchParams();
+  const [open, setOpen] = useState(searchParams.get("nav") === "1");
+
+  return (
+    <header className="border-b border-[#1a2e1a] sticky top-0 z-50 bg-[#0a0f0a]/95 backdrop-blur">
+      <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+        <Link href="/" className="font-bold text-lg tracking-tight">
+          WC<span className="text-[#4ade80]">2026</span>
+        </Link>
+        <nav className="hidden md:flex gap-1 text-sm">
+          <Link href="/" className="px-3 py-1.5 rounded hover:bg-[#1a2e1a] transition-colors text-gray-300 hover:text-white">Scores</Link>
+          <Link href="/standings" className="px-3 py-1.5 rounded hover:bg-[#1a2e1a] transition-colors text-gray-300 hover:text-white">Groups</Link>
+          <Link href="/predict" className="px-3 py-1.5 rounded hover:bg-[#1a2e1a] transition-colors text-gray-300 hover:text-white">Predict</Link>
+          <Link href="/leaderboard" className="px-3 py-1.5 rounded hover:bg-[#1a2e1a] transition-colors text-gray-300 hover:text-white">Leaderboard</Link>
+        </nav>
+        <button
+          onClick={() => setOpen(!open)}
+          className="md:hidden flex flex-col gap-1 p-2"
+          aria-label="Toggle navigation"
+        >
+          <span className={`block w-5 h-0.5 bg-gray-300 transition-transform ${open ? "rotate-45 translate-y-1.5" : ""}`} />
+          <span className={`block w-5 h-0.5 bg-gray-300 transition-opacity ${open ? "opacity-0" : ""}`} />
+          <span className={`block w-5 h-0.5 bg-gray-300 transition-transform ${open ? "-rotate-45 -translate-y-1.5" : ""}`} />
+        </button>
+      </div>
+      <div className={`md:hidden border-t border-[#1a2e1a] ${open ? "block" : "hidden"}`}>
+        <nav className="max-w-5xl mx-auto px-4 py-2 flex flex-col gap-1 text-sm">
+          <Link href="/" className="px-3 py-2 rounded hover:bg-[#1a2e1a] transition-colors text-gray-300 hover:text-white" onClick={() => setOpen(false)}>Scores</Link>
+          <Link href="/standings" className="px-3 py-2 rounded hover:bg-[#1a2e1a] transition-colors text-gray-300 hover:text-white" onClick={() => setOpen(false)}>Groups</Link>
+          <Link href="/predict" className="px-3 py-2 rounded hover:bg-[#1a2e1a] transition-colors text-gray-300 hover:text-white" onClick={() => setOpen(false)}>Predict</Link>
+          <Link href="/leaderboard" className="px-3 py-2 rounded hover:bg-[#1a2e1a] transition-colors text-gray-300 hover:text-white" onClick={() => setOpen(false)}>Leaderboard</Link>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+export default function Nav() {
+  return (
+    <Suspense fallback={
+      <header className="border-b border-[#1a2e1a] sticky top-0 z-50 bg-[#0a0f0a]/95 backdrop-blur">
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center">
+          <span className="font-bold text-lg tracking-tight">WC<span className="text-[#4ade80]">2026</span></span>
+        </div>
+      </header>
+    }>
+      <NavInner />
+    </Suspense>
+  );
+}

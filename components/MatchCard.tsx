@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import type { Match } from "@/lib/types";
 import { getPredictionForMatch, savePrediction } from "@/lib/predictions";
 
@@ -36,7 +37,10 @@ export default function MatchCard({ match, showPredict = false }: { match: Match
   }
 
   return (
-    <div className={`card p-4 ${isLive ? "border-red-900" : ""}`}>
+    <Link
+      href={`/matches/${match.id}`}
+      className={`card p-4 block ${isLive ? "border-red-900" : ""}`}
+    >
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs text-gray-500 font-mono">
           {match.group ? `${match.group} · ` : ""}{formatDate(match.utcDate)} {formatTime(match.utcDate)}
@@ -45,47 +49,47 @@ export default function MatchCard({ match, showPredict = false }: { match: Match
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Home */}
-        <div className="flex-1 flex items-center gap-2 justify-end">
-          <span className="text-sm font-semibold text-right">{match.homeTeam.shortName || match.homeTeam.name}</span>
+        <div className="flex-1 flex items-center gap-2 justify-end max-[400px]:gap-1">
+          <span className="text-sm font-semibold text-right max-[400px]:text-xs">{match.homeTeam.shortName || match.homeTeam.name}</span>
           {match.homeTeam.crest && (
-            <img src={match.homeTeam.crest} alt={match.homeTeam.name} className="w-7 h-7 object-contain" />
+            <img src={match.homeTeam.crest} alt={match.homeTeam.name} className="w-7 h-7 object-contain max-[400px]:w-5 max-[400px]:h-5" />
           )}
         </div>
 
-        {/* Score */}
-        <div className="flex items-center gap-1 min-w-[64px] justify-center">
+        <div className="flex items-center gap-1 min-w-[64px] justify-center max-[400px]:min-w-[48px]">
           {isFinished || isLive ? (
-            <span className="font-mono font-bold text-xl text-white">
-              {match.score.fullTime.home ?? "—"} <span className="text-gray-600">:</span> {match.score.fullTime.away ?? "—"}
+            <span className="font-mono font-bold text-xl text-white max-[400px]:text-base">
+              {match.score.fullTime.home ?? "\u2014"} <span className="text-gray-600">:</span> {match.score.fullTime.away ?? "\u2014"}
             </span>
           ) : (
-            <span className="font-mono text-sm text-gray-500">vs</span>
+            <span className="font-mono text-sm text-gray-500 max-[400px]:text-xs">vs</span>
           )}
         </div>
 
-        {/* Away */}
-        <div className="flex-1 flex items-center gap-2">
+        <div className="flex-1 flex items-center gap-2 max-[400px]:gap-1">
           {match.awayTeam.crest && (
-            <img src={match.awayTeam.crest} alt={match.awayTeam.name} className="w-7 h-7 object-contain" />
+            <img src={match.awayTeam.crest} alt={match.awayTeam.name} className="w-7 h-7 object-contain max-[400px]:w-5 max-[400px]:h-5" />
           )}
-          <span className="text-sm font-semibold">{match.awayTeam.shortName || match.awayTeam.name}</span>
+          <span className="text-sm font-semibold max-[400px]:text-xs">{match.awayTeam.shortName || match.awayTeam.name}</span>
         </div>
       </div>
 
-      {/* Prediction row */}
+      <div className="flex items-center gap-1 text-xs text-gray-500 mt-3">
+        View details <span className="text-[10px]">&rarr;</span>
+      </div>
+
       {canPredict && (
-        <div className="mt-4 pt-3 border-t border-[#1a2e1a] flex items-center gap-3">
+        <div className="mt-4 pt-3 border-t border-[#1a2e1a] flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
           <span className="text-xs text-gray-500 flex-1">Your prediction:</span>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              <button onClick={() => setHomeGoals(Math.max(0, homeGoals - 1))} className="w-6 h-6 rounded bg-[#1a2e1a] text-[#4ade80] text-xs flex items-center justify-center hover:bg-[#243824]">−</button>
+              <button onClick={() => setHomeGoals(Math.max(0, homeGoals - 1))} className="w-6 h-6 rounded bg-[#1a2e1a] text-[#4ade80] text-xs flex items-center justify-center hover:bg-[#243824]">&minus;</button>
               <span className="font-mono w-5 text-center text-sm">{homeGoals}</span>
               <button onClick={() => setHomeGoals(homeGoals + 1)} className="w-6 h-6 rounded bg-[#1a2e1a] text-[#4ade80] text-xs flex items-center justify-center hover:bg-[#243824]">+</button>
             </div>
             <span className="text-gray-600 text-xs">:</span>
             <div className="flex items-center gap-1">
-              <button onClick={() => setAwayGoals(Math.max(0, awayGoals - 1))} className="w-6 h-6 rounded bg-[#1a2e1a] text-[#4ade80] text-xs flex items-center justify-center hover:bg-[#243824]">−</button>
+              <button onClick={() => setAwayGoals(Math.max(0, awayGoals - 1))} className="w-6 h-6 rounded bg-[#1a2e1a] text-[#4ade80] text-xs flex items-center justify-center hover:bg-[#243824]">&minus;</button>
               <span className="font-mono w-5 text-center text-sm">{awayGoals}</span>
               <button onClick={() => setAwayGoals(awayGoals + 1)} className="w-6 h-6 rounded bg-[#1a2e1a] text-[#4ade80] text-xs flex items-center justify-center hover:bg-[#243824]">+</button>
             </div>
@@ -94,17 +98,16 @@ export default function MatchCard({ match, showPredict = false }: { match: Match
             onClick={handleSave}
             className={`text-xs px-3 py-1.5 rounded font-medium transition-colors ${saved ? "bg-[#4ade80] text-black" : "bg-[#1a2e1a] text-[#4ade80] hover:bg-[#243824]"}`}
           >
-            {saved ? "✓ Saved" : "Save"}
+            {saved ? "Saved" : "Save"}
           </button>
         </div>
       )}
 
-      {/* Show saved prediction on scores page */}
       {!canPredict && existing && !isFinished && (
         <div className="mt-3 pt-3 border-t border-[#1a2e1a] text-xs text-gray-500">
           Your prediction: <span className="font-mono text-[#4ade80]">{existing.homeScore} : {existing.awayScore}</span>
         </div>
       )}
-    </div>
+    </Link>
   );
 }

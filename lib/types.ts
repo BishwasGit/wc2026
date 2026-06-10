@@ -4,6 +4,28 @@ export interface Team {
   shortName: string;
   tla: string;
   crest: string;
+  address?: string;
+  website?: string;
+  founded?: number;
+  clubColors?: string;
+  venue?: string;
+  coach?: Coach;
+  squad?: SquadMember[];
+}
+
+export interface Coach {
+  id: number;
+  name: string;
+  nationality: string;
+}
+
+export interface SquadMember {
+  id: number;
+  name: string;
+  position: string;
+  nationality: string;
+  dateOfBirth?: string;
+  shirtNumber?: number;
 }
 
 export interface Score {
