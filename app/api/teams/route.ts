@@ -1,14 +1,9 @@
 import { NextResponse } from "next/server";
-import { getMatch } from "@/lib/football-api";
+import { getTeams } from "@/lib/football-api";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-
+export async function GET() {
   try {
-    const data = await getMatch(id);
+    const data = await getTeams();
     return NextResponse.json(data);
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";

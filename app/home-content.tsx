@@ -1,35 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import MatchCard from "@/components/MatchCard";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import ErrorCard from "@/components/ErrorCard";
 import type { Match } from "@/lib/types";
 
 type Tab = "today" | "live" | "all";
-
-export function LoadingSpinner() {
-  return (
-    <svg className="animate-spin h-8 w-8 text-[#4ade80] mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
-  );
-}
-
-export function ErrorBox({ message }: { message: string }) {
-  return (
-    <div className="card p-4 border-red-900">
-      <p className="text-red-400 text-sm">{message}</p>
-      {message.includes("401") && (
-        <p className="text-gray-500 text-xs mt-1">Add your football-data.org API key to .env.local</p>
-      )}
-      <button
-        onClick={() => window.location.reload()}
-        className="mt-3 text-xs px-3 py-1.5 rounded bg-[#1a2e1a] text-[#4ade80] hover:bg-[#243824] transition-colors"
-      >
-        Try Again
-      </button>
-    </div>
-  );
-}
 
 export default function HomeContent() {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -112,14 +88,13 @@ export default function HomeContent() {
       {loading && (
         <div className="flex items-center justify-center py-20 text-gray-500">
           <div className="text-center">
-            <LoadingSpinner />
-            <p className="text-sm mt-3">Loading matches...</p>
+            <LoadingSpinner text="Loading matches..." />
           </div>
         </div>
       )}
 
       {error && (
-        <ErrorBox message={error} />
+        <ErrorCard message={error} />
       )}
 
       {!loading && !error && matches.length === 0 && (

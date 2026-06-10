@@ -38,7 +38,7 @@ export default function MatchCard({ match, showPredict = false }: { match: Match
 
   return (
     <Link
-      href={`/matches/${match.id}`}
+      href={`/match/${match.id}`}
       className={`card p-4 block ${isLive ? "border-red-900" : ""}`}
     >
       <div className="flex items-center justify-between mb-3">

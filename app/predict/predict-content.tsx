@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import MatchCard from "@/components/MatchCard";
 import type { Match } from "@/lib/types";
-import { LoadingSpinner } from "@/app/home-content";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function PredictContent() {
   const [matches, setMatches] = useState<Match[]>([]);
