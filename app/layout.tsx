@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
   },
+  other: {
+    "google-adsense-account": "ca-pub-4818330169144190",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
