@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import type { Match } from "@/lib/types";
+import { getMatch } from "@/lib/football-api";
 import YourPrediction from "./prediction";
 
 type Props = {
@@ -10,10 +11,12 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/match/${id}`, { next: { revalidate: 60 } });
-  if (!res.ok) return { title: "Match - WC 2026" };
-  const data = await res.json();
-  const m: Match = data;
+  let m: Match;
+  try {
+    m = await getMatch(id) as Match;
+  } catch {
+    return { title: "Match - WC 2026" };
+  }
   const home = m.homeTeam?.shortName || m.homeTeam?.name || "?";
   const away = m.awayTeam?.shortName || m.awayTeam?.name || "?";
   const score =
@@ -171,12 +174,10 @@ function LoadingSkeleton() {
 }
 
 async function MatchFetcher({ id }: { id: string }) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/match/${id}`,
-    { next: { revalidate: 60 } }
-  );
-
-  if (!res.ok) {
+  let data: Match;
+  try {
+    data = await getMatch(id) as Match;
+  } catch {
     return (
       <div className="card p-8 text-center">
         <p className="text-gray-500 text-lg mb-2">Match not found</p>
@@ -185,7 +186,6 @@ async function MatchFetcher({ id }: { id: string }) {
     );
   }
 
-  const data = await res.json();
   if (!data || !data.homeTeam) {
     return (
       <div className="card p-8 text-center">
