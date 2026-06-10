@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import Nav from "./nav";
 
@@ -22,6 +23,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="bg-[#0a0f0a] text-white min-h-screen">
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4818330169144190"
+          crossOrigin="anonymous"
+          strategy="beforeInteractive"
+        />
         <Nav />
         <main className="max-w-5xl mx-auto px-4 py-6">{children}</main>
         <footer className="border-t border-[#1a2e1a] text-center text-xs text-gray-600 py-6 mt-12">
