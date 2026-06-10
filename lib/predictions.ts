@@ -1,6 +1,7 @@
 import type { Prediction } from "./types";
 
 const KEY = "wc2026_predictions";
+const USERNAME_KEY = "wc2026_username";
 
 export function getPredictions(): Prediction[] {
   if (typeof window === "undefined") return [];
@@ -19,6 +20,8 @@ export function savePrediction(p: Omit<Prediction, "userId" | "createdAt">): voi
   if (existing >= 0) all[existing] = pred;
   else all.push(pred);
   localStorage.setItem(KEY, JSON.stringify(all));
+
+  syncPredictionToServer({ matchId: p.matchId, homeScore: p.homeScore, awayScore: p.awayScore });
 }
 
 export function getPredictionForMatch(matchId: number): Prediction | null {
@@ -32,4 +35,23 @@ function getUserId(): string {
     localStorage.setItem("wc2026_uid", id);
   }
   return id;
+}
+
+function syncPredictionToServer(p: { matchId: number; homeScore: number; awayScore: number }) {
+  const userId = getUserId();
+  const username = getUsername();
+  fetch("/api/predictions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, username, ...p }),
+  }).catch(() => {});
+}
+
+export function getUsername(): string {
+  if (typeof window === "undefined") return "Anonymous";
+  return localStorage.getItem(USERNAME_KEY) || "Anonymous";
+}
+
+export function setUsername(name: string): void {
+  localStorage.setItem(USERNAME_KEY, name);
 }
