@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     template: "%s | WC 2026",
   },
   description: "FIFA World Cup 2026 live scores, group standings, and match predictions",
-  metadataBase: new URL("https://wc2026.vercel.app"),
+  metadataBase: new URL("https://2026worldcuplive.vercel.app"),
   openGraph: {
     siteName: "WC 2026",
     type: "website",

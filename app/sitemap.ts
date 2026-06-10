@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://wc2026.vercel.app";
+  const base = "https://2026worldcuplive.vercel.app";
 
   return [
     { url: base, lastModified: new Date(), changeFrequency: "hourly", priority: 1 },

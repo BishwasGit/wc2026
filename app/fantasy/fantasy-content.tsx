@@ -286,7 +286,7 @@ export default function FantasyContent() {
       .filter(Boolean)
       .map((p) => p!.name)
       .join(" | ");
-    const text = `My WC2026 XI: ${names} | Built on https://wc2026.vercel.app/fantasy`;
+    const text = `My WC2026 XI: ${names} | Built on https://2026worldcuplive.vercel.app/fantasy`;
     navigator.clipboard.writeText(text).then(() => showToast("Copied!"));
   }
 
