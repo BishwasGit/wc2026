@@ -75,7 +75,8 @@ export default function MatchCard({ match, showPredict = false }: { match: Match
       </div>
 
       <div className="flex items-center gap-1 text-xs text-gray-500 mt-3">
-        View details <span className="text-[10px]">&rarr;</span>
+        {isLive && <span className="text-red-400 font-medium">Watch Live</span>}
+        {!isLive && <>View details <span className="text-[10px]">&rarr;</span></>}
       </div>
 
       {canPredict && (

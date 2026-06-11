@@ -136,6 +136,22 @@ function MatchDetailView({ match }: { match: Match }) {
         </div>
       )}
 
+      {isLive && (
+        <a
+          href="/watch"
+          className="card p-5 flex items-center justify-between hover:border-[#4ade80] transition-colors"
+        >
+          <div>
+            <h2 className="text-sm font-semibold text-white">Watch Live</h2>
+            <p className="text-xs text-gray-500 mt-0.5">This match may be available on a sports channel</p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 text-xs px-4 py-2 rounded font-medium bg-red-900 text-red-200">
+            <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            WATCH LIVE
+          </span>
+        </a>
+      )}
+
       <YourPrediction matchId={match.id} />
 
       <div className="card p-5 flex items-center justify-between">
