@@ -23,6 +23,7 @@ export default function WatchContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [streamError, setStreamError] = useState(false);
+  const [useProxy, setUseProxy] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsClass | null>(null);
 
@@ -53,7 +54,8 @@ export default function WatchContent() {
       : channels;
   }, [query, channels]);
 
-  const currentUrl = selected ? selected.urls[urlIndex] : null;
+  const rawUrl = selected ? selected.urls[urlIndex] : null;
+  const currentUrl = useProxy && rawUrl ? `/api/watch/proxy?url=${encodeURIComponent(rawUrl)}` : rawUrl;
   const hasBackup = selected && selected.urls.length > 1;
 
   const retryWithNext = useCallback(() => {
@@ -89,7 +91,9 @@ export default function WatchContent() {
     if (!selected || !videoRef.current || streamError) return;
 
     const videoEl = videoRef.current;
-    const url = selected.urls[urlIndex];
+    const url = useProxy && selected.urls[urlIndex]
+      ? `/api/watch/proxy?url=${encodeURIComponent(selected.urls[urlIndex])}`
+      : selected.urls[urlIndex];
     if (!url) return;
 
     import("hls.js").then((HlsModule) => {
@@ -125,7 +129,7 @@ export default function WatchContent() {
       }
       videoEl.src = "";
     };
-  }, [selected, urlIndex, streamError]);
+  }, [selected, urlIndex, streamError, useProxy]);
 
   const groups = [...new Set(filtered.map((c) => c.group).filter(Boolean))].sort();
 
@@ -196,11 +200,23 @@ export default function WatchContent() {
               </span>
             )}
 
+            <button
+              onClick={() => { destroyPlayer(); setUseProxy(!useProxy); }}
+              className={`text-xs px-3 py-1.5 rounded font-medium transition-colors ${
+                useProxy
+                  ? "bg-[#4ade80] text-black"
+                  : "bg-[#1a2e1a] text-gray-400 hover:bg-[#243824]"
+              }`}
+              title="Route stream through server to bypass ISP blocks"
+            >
+              {useProxy ? "Proxy ON" : "Proxy"}
+            </button>
+
             <a
-              href={currentUrl}
+              href={rawUrl || ""}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-[#4ade80] hover:bg-[#243824] ml-auto"
+              className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-[#4ade80] hover:bg-[#243824]"
             >
               Open in VLC
             </a>
