@@ -215,14 +215,7 @@ export default function WatchContent() {
               {useProxy ? "Proxy ON" : "Proxy"}
             </button>
 
-            <a
-              href={rawUrl || ""}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-[#4ade80] hover:bg-[#243824]"
-            >
-              Open in VLC
-            </a>
+
           </div>
         </div>
       )}
