@@ -20,6 +20,17 @@ function rewriteM3U(body: string, baseUrl: string): string {
     .join("\n");
 }
 
+export async function OPTIONS() {
+  return NextResponse.json(null, {
+    headers: {
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "GET, OPTIONS",
+      "access-control-allow-headers": "*",
+      "access-control-max-age": "86400",
+    },
+  });
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const url = searchParams.get("url");

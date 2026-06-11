@@ -54,8 +54,10 @@ export default function WatchContent() {
       : channels;
   }, [query, channels]);
 
+  const proxyBase = process.env.NEXT_PUBLIC_PROXY_URL || "/api/watch/proxy";
+
   const rawUrl = selected ? selected.urls[urlIndex] : null;
-  const currentUrl = useProxy && rawUrl ? `/api/watch/proxy?url=${encodeURIComponent(rawUrl)}` : rawUrl;
+  const currentUrl = useProxy && rawUrl ? `${proxyBase}?url=${encodeURIComponent(rawUrl)}` : rawUrl;
   const hasBackup = selected && selected.urls.length > 1;
 
   const retryWithNext = useCallback(() => {
@@ -91,8 +93,9 @@ export default function WatchContent() {
     if (!selected || !videoRef.current || streamError) return;
 
     const videoEl = videoRef.current;
+    const proxyBase = process.env.NEXT_PUBLIC_PROXY_URL || "/api/watch/proxy";
     const url = useProxy && selected.urls[urlIndex]
-      ? `/api/watch/proxy?url=${encodeURIComponent(selected.urls[urlIndex])}`
+      ? `${proxyBase}?url=${encodeURIComponent(selected.urls[urlIndex])}`
       : selected.urls[urlIndex];
     if (!url) return;
 
