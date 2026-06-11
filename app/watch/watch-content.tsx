@@ -134,6 +134,28 @@ export default function WatchContent() {
     };
   }, [selected, urlIndex, streamError, useProxy]);
 
+  const recommendedTerms = useMemo(() =>
+    ["fox sport", "espn", "bein sport", "tnt sport", "sky sport", "eurosport", "nfl", "nba"],
+  []);
+
+  const recommended = useMemo(() => {
+    if (loading || channels.length === 0) return [];
+    const seen = new Set<string>();
+    return recommendedTerms.flatMap((term) => {
+      const match = channels.find(
+        (c) =>
+          c.name.toLowerCase().includes(term) &&
+          c.urls.length > 0 &&
+          !seen.has(c.name.toLowerCase())
+      );
+      if (match) {
+        seen.add(match.name.toLowerCase());
+        return [match];
+      }
+      return [];
+    });
+  }, [channels, loading, recommendedTerms]);
+
   const groups = [...new Set(filtered.map((c) => c.group).filter(Boolean))].sort();
 
   return (
@@ -144,6 +166,34 @@ export default function WatchContent() {
         </h1>
         <p className="text-sm text-gray-500">Watch live sports channels from around the world</p>
       </div>
+
+      {!loading && recommended.length > 0 && !selected && (
+        <div className="mb-5">
+          <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest mb-2">
+            Recommended
+          </h3>
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+            {recommended.map((ch, i) => (
+              <button
+                key={`rec-${ch.tvgId || ch.name}-${i}`}
+                onClick={() => selectChannel(ch)}
+                className="card p-2.5 flex items-center gap-2 shrink-0 hover:border-[#4ade80] transition-colors"
+              >
+                {ch.logo ? (
+                  <img src={ch.logo} alt="" className="w-7 h-7 object-contain rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                ) : (
+                  <div className="w-7 h-7 rounded bg-[#1a2e1a] flex items-center justify-center">
+                    <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    </svg>
+                  </div>
+                )}
+                <span className="text-xs font-medium whitespace-nowrap">{ch.name.replace(/\(\d+p\)|\s*\[.*?\]/g, "").trim()}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {selected && currentUrl && (
         <div className="card p-4 mb-6">
