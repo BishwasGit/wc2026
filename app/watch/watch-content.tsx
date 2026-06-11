@@ -24,8 +24,11 @@ export default function WatchContent() {
   const [error, setError] = useState<string | null>(null);
   const [streamError, setStreamError] = useState(false);
   const [useProxy, setUseProxy] = useState(false);
+  const [deadChannels, setDeadChannels] = useState<Set<string>>(new Set());
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsClass | null>(null);
+
+  const proxyBase = process.env.NEXT_PUBLIC_PROXY_URL || "/api/watch/proxy";
 
   useEffect(() => {
     let cancelled = false;
@@ -49,23 +52,20 @@ export default function WatchContent() {
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
-    return q
+    const list = q
       ? channels.filter((c) => c.name.toLowerCase().includes(q) || c.group.toLowerCase().includes(q))
       : channels;
-  }, [query, channels]);
+    return list.filter((c) => !deadChannels.has(c.name.toLowerCase()));
+  }, [query, channels, deadChannels]);
 
-  const proxyBase = process.env.NEXT_PUBLIC_PROXY_URL || "/api/watch/proxy";
+  const deadCount = useMemo(
+    () => channels.filter((c) => deadChannels.has(c.name.toLowerCase())).length,
+    [channels, deadChannels]
+  );
 
   const rawUrl = selected ? selected.urls[urlIndex] : null;
   const currentUrl = useProxy && rawUrl ? `${proxyBase}?url=${encodeURIComponent(rawUrl)}` : rawUrl;
   const hasBackup = selected && selected.urls.length > 1;
-
-  const retryWithNext = useCallback(() => {
-    if (!selected) return;
-    setStreamError(false);
-    const next = (urlIndex + 1) % selected.urls.length;
-    setUrlIndex(next);
-  }, [selected, urlIndex]);
 
   function destroyPlayer() {
     if (hlsRef.current) {
@@ -89,11 +89,25 @@ export default function WatchContent() {
     setStreamError(false);
   }
 
+  function markChannelDead(name: string) {
+    setDeadChannels((prev) => {
+      const next = new Set(prev);
+      next.add(name.toLowerCase());
+      return next;
+    });
+  }
+
+  const retryWithNext = useCallback(() => {
+    if (!selected) return;
+    setStreamError(false);
+    const next = (urlIndex + 1) % selected.urls.length;
+    setUrlIndex(next);
+  }, [selected, urlIndex]);
+
   useEffect(() => {
     if (!selected || !videoRef.current || streamError) return;
 
     const videoEl = videoRef.current;
-    const proxyBase = process.env.NEXT_PUBLIC_PROXY_URL || "/api/watch/proxy";
     const url = useProxy && selected.urls[urlIndex]
       ? `${proxyBase}?url=${encodeURIComponent(selected.urls[urlIndex])}`
       : selected.urls[urlIndex];
@@ -132,7 +146,28 @@ export default function WatchContent() {
       }
       videoEl.src = "";
     };
-  }, [selected, urlIndex, streamError, useProxy]);
+  }, [selected, urlIndex, streamError, useProxy, proxyBase]);
+
+  useEffect(() => {
+    if (!streamError || !selected) return;
+    const next = urlIndex + 1;
+    if (next < selected.urls.length) {
+      const t = setTimeout(() => {
+        setStreamError(false);
+        setUrlIndex(next);
+      }, 2000);
+      return () => clearTimeout(t);
+    } else {
+      markChannelDead(selected.name);
+      const t = setTimeout(() => {
+        destroyPlayer();
+        setSelected(null);
+        setUrlIndex(0);
+        setStreamError(false);
+      }, 500);
+      return () => clearTimeout(t);
+    }
+  }, [streamError, selected, urlIndex]);
 
   const recommendedTerms = useMemo(() =>
     ["fox sport", "espn", "bein sport", "tnt sport", "sky sport", "eurosport", "nfl", "nba"],
@@ -164,7 +199,11 @@ export default function WatchContent() {
         <h1 className="text-2xl font-bold mb-1">
           Live <span className="text-[#4ade80]">TV</span>
         </h1>
-        <p className="text-sm text-gray-500">Watch live sports channels from around the world</p>
+        <p className="text-sm text-gray-500">
+          {!loading && !error
+            ? `${filtered.length} channel${filtered.length !== 1 ? "s" : ""} available`
+            : "Watch live sports channels from around the world"}
+        </p>
       </div>
 
       {!loading && recommended.length > 0 && !selected && (
@@ -270,7 +309,7 @@ export default function WatchContent() {
         </div>
       )}
 
-      <div className="mb-4">
+      <div className="mb-4 space-y-2">
         <input
           type="text"
           value={query}
@@ -278,6 +317,19 @@ export default function WatchContent() {
           placeholder="Search channels..."
           className="w-full bg-[#1a2e1a] border border-[#2a4a2a] rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-[#4ade80] transition-colors"
         />
+        {deadCount > 0 && (
+          <p className="text-xs text-gray-500">
+            {filtered.length} channel{filtered.length !== 1 ? "s" : ""} available
+            <span className="text-gray-600"> · {deadCount} hidden (unavailable)</span>
+            <span className="text-gray-600"> · </span>
+            <button
+              onClick={() => setDeadChannels(new Set())}
+              className="text-[#4ade80] hover:underline"
+            >
+              reset
+            </button>
+          </p>
+        )}
       </div>
 
       {loading && (
@@ -291,7 +343,13 @@ export default function WatchContent() {
       {!loading && !error && filtered.length === 0 && (
         <div className="text-center py-20 text-gray-500">
           <p className="text-4xl mb-3 opacity-30">[ ]</p>
-          <p>{query ? "No channels match your search" : "No sports channels available"}</p>
+          <p>
+            {query
+              ? "No channels match your search"
+              : deadCount > 0
+                ? `All ${channels.length} channels were unavailable — try again later`
+                : "No sports channels available"}
+          </p>
         </div>
       )}
 

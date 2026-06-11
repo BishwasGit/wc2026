@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { CURATED_CHANNELS } from "@/lib/curated-channels";
 
 const SOURCES = [
   "https://iptv-org.github.io/iptv/index.m3u",
@@ -143,6 +144,26 @@ async function fetchChannels(): Promise<MergedChannel[]> {
         logo: ch.logo,
         group: ch.group,
         urls: [ch.url],
+      });
+    }
+  }
+
+  for (const ch of CURATED_CHANNELS) {
+    const key = normalizeName(ch.name);
+    const existing = map.get(key);
+    if (existing) {
+      for (const url of ch.urls) {
+        if (!existing.urls.includes(url)) {
+          existing.urls.push(url);
+        }
+      }
+    } else {
+      map.set(key, {
+        tvgId: "",
+        name: ch.name,
+        logo: ch.logo,
+        group: ch.group,
+        urls: [...ch.urls],
       });
     }
   }
