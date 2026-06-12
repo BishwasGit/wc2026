@@ -11,7 +11,7 @@ export default function PredictContent() {
   useEffect(() => {
     fetch("/api/matches?status=SCHEDULED")
       .then((r) => r.json())
-      .then((d) => setMatches((d.matches || []).slice(0, 20)))
+      .then((d) => setMatches((d.matches || []).filter((m: Match) => m.status === "SCHEDULED").slice(0, 20)))
       .finally(() => setLoading(false));
   }, []);
 
