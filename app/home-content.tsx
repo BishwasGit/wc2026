@@ -120,7 +120,22 @@ export default function HomeContent() {
       {!loading && !error && matches.length === 0 && (
         <div className="text-center py-20 text-gray-500">
           <p className="text-4xl mb-3 opacity-30">[ ]</p>
-          <p>No matches {tab === "today" ? "today" : tab === "live" ? "currently live" : "found"}</p>
+          <p className="mb-4">
+            {tab === "today" && "No matches today"}
+            {tab === "live" && "No matches currently live"}
+            {tab === "all" && "No matches found"}
+          </p>
+          {tab === "live" && (
+            <a
+              href="/watch"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg font-semibold text-xs bg-gradient-to-r from-[#4ade80] to-[#22c55e] text-black hover:from-[#22c55e] hover:to-[#16a34a] transition-all shadow-lg shadow-[#4ade80]/20"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+              Watch Live Streams
+            </a>
+          )}
         </div>
       )}
 
