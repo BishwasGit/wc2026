@@ -201,22 +201,20 @@ export default function WatchContent() {
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-      {/* Left: Player */}
-      <div className="flex-1 min-w-0 order-1 lg:order-none">
+      {/* Player */}
+      <div className="flex-1 min-w-0">
         {selected && currentUrl ? (
-          <div className="lg:sticky lg:top-4">
+          <div className="sticky top-0 lg:top-4 z-10 bg-[#0a0f0a] pb-2">
             <div className="bg-black rounded-lg overflow-hidden" style={{ aspectRatio: "16/9" }}>
               <video
                 ref={videoRef}
-                className="w-full h-full"
+                className="w-full h-full object-contain"
                 controls
                 playsInline
-                poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='9' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%23000'/%3E%3C/svg%3E"
               />
             </div>
 
-            {/* Player controls */}
-            <div className="flex items-center gap-2 mt-3 flex-wrap">
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
               <button
                 onClick={prevChannel}
                 disabled={currentIndex <= 0}
@@ -239,7 +237,7 @@ export default function WatchContent() {
               </button>
             </div>
 
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
               <span className="text-xs text-red-400 font-medium">LIVE</span>
 
@@ -287,52 +285,9 @@ export default function WatchContent() {
         )}
       </div>
 
-      {/* Right: Channel Sidebar */}
-      <div ref={sidebarRef} className="w-full lg:w-80 shrink-0 order-none lg:order-1">
+      {/* Channel Sidebar */}
+      <div ref={sidebarRef} className="w-full lg:w-80 shrink-0">
         <div className="lg:sticky lg:top-4 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
-          {/* Mobile player (shows above sidebar on small screens) */}
-          {selected && currentUrl && (
-            <div className="lg:hidden mb-4">
-              <div className="bg-black rounded-lg overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                <video
-                  ref={videoRef}
-                  className="w-full h-full"
-                  controls
-                  playsInline
-                  poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='9' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%23000'/%3E%3C/svg%3E"
-                />
-              </div>
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <button
-                  onClick={prevChannel}
-                  disabled={currentIndex <= 0}
-                  className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-gray-300 hover:bg-[#243824] disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  ◄ Prev
-                </button>
-                <span className="text-xs font-medium truncate flex-1">{selected.name}</span>
-                <button
-                  onClick={nextChannel}
-                  disabled={currentIndex < 0 || currentIndex >= filtered.length - 1}
-                  className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-gray-300 hover:bg-[#243824] disabled:opacity-30 disabled:cursor-not-allowed"
-                >
-                  Next ►
-                </button>
-                <button
-                  onClick={() => { destroyPlayer(); setUseProxy(!useProxy); }}
-                  className={`text-xs px-3 py-1.5 rounded font-medium transition-colors ${
-                    useProxy ? "bg-[#4ade80] text-black" : "bg-[#1a2e1a] text-gray-400"
-                  }`}
-                >
-                  {useProxy ? "Proxy ON" : "Proxy"}
-                </button>
-                <button onClick={closePlayer} className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-gray-400">Close</button>
-              </div>
-              {streamError && (
-                <p className="text-xs text-yellow-400 mt-1">Stream failed — try a different channel</p>
-              )}
-            </div>
-          )}
 
           <h2 className="text-sm font-bold mb-2">
             Channels
