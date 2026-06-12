@@ -27,6 +27,7 @@ export default function WatchContent() {
   const [deadChannels, setDeadChannels] = useState<Set<string>>(new Set());
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsClass | null>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   const proxyBase = process.env.NEXT_PUBLIC_PROXY_URL || "/api/watch/proxy";
 
@@ -63,6 +64,11 @@ export default function WatchContent() {
     [channels, deadChannels]
   );
 
+  const currentIndex = useMemo(() => {
+    if (!selected) return -1;
+    return filtered.findIndex((c) => c.name === selected.name);
+  }, [selected, filtered]);
+
   const rawUrl = selected ? selected.urls[urlIndex] : null;
   const currentUrl = useProxy && rawUrl ? `${proxyBase}?url=${encodeURIComponent(rawUrl)}` : rawUrl;
   const hasBackup = selected && selected.urls.length > 1;
@@ -80,6 +86,10 @@ export default function WatchContent() {
     setSelected(ch);
     setUrlIndex(0);
     setStreamError(false);
+    if (sidebarRef.current) {
+      const el = sidebarRef.current.querySelector(`[data-channel="${ch.name}"]`);
+      if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
   }
 
   function closePlayer() {
@@ -95,6 +105,16 @@ export default function WatchContent() {
       next.add(name.toLowerCase());
       return next;
     });
+  }
+
+  function prevChannel() {
+    if (currentIndex <= 0) return;
+    selectChannel(filtered[currentIndex - 1]);
+  }
+
+  function nextChannel() {
+    if (currentIndex < 0 || currentIndex >= filtered.length - 1) return;
+    selectChannel(filtered[currentIndex + 1]);
   }
 
   const retryWithNext = useCallback(() => {
@@ -169,241 +189,251 @@ export default function WatchContent() {
     }
   }, [streamError, selected, urlIndex]);
 
-  const recommendedTerms = useMemo(() =>
-    ["fox sport", "espn", "bein sport", "tnt sport", "sky sport", "eurosport", "nfl", "nba"],
-  []);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20 text-gray-500">
+        <LoadingSpinner text="Loading channels..." />
+      </div>
+    );
+  }
 
-  const recommended = useMemo(() => {
-    if (loading || channels.length === 0) return [];
-    const seen = new Set<string>();
-    return recommendedTerms.flatMap((term) => {
-      const match = channels.find(
-        (c) =>
-          c.name.toLowerCase().includes(term) &&
-          c.urls.length > 0 &&
-          !seen.has(c.name.toLowerCase())
-      );
-      if (match) {
-        seen.add(match.name.toLowerCase());
-        return [match];
-      }
-      return [];
-    });
-  }, [channels, loading, recommendedTerms]);
-
-  const groups = [...new Set(filtered.map((c) => c.group).filter(Boolean))].sort();
+  if (error) return <ErrorCard message={error} />;
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1">
-          Live <span className="text-[#4ade80]">TV</span>
-        </h1>
-        <p className="text-sm text-gray-500">
-          {!loading && !error
-            ? `${filtered.length} channel${filtered.length !== 1 ? "s" : ""} available`
-            : "Watch live sports channels from around the world"}
-        </p>
-      </div>
-
-      {!loading && recommended.length > 0 && !selected && (
-        <div className="mb-5">
-          <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest mb-2">
-            Recommended
-          </h3>
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
-            {recommended.map((ch, i) => (
-              <button
-                key={`rec-${ch.tvgId || ch.name}-${i}`}
-                onClick={() => selectChannel(ch)}
-                className="card p-2.5 flex items-center gap-2 shrink-0 hover:border-[#4ade80] transition-colors"
-              >
-                {ch.logo ? (
-                  <img src={ch.logo} alt="" className="w-7 h-7 object-contain rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                ) : (
-                  <div className="w-7 h-7 rounded bg-[#1a2e1a] flex items-center justify-center">
-                    <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    </svg>
-                  </div>
-                )}
-                <span className="text-xs font-medium whitespace-nowrap">{ch.name.replace(/\(\d+p\)|\s*\[.*?\]/g, "").trim()}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {selected && currentUrl && (
-        <div className="card p-4 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              {selected.logo && (
-                <img src={selected.logo} alt="" className="w-8 h-8 object-contain rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-              )}
-              <div>
-                <h2 className="font-semibold text-sm">{selected.name}</h2>
-                <span className="text-xs text-gray-500">{selected.group}</span>
-              </div>
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+      {/* Left: Player */}
+      <div className="flex-1 min-w-0 order-1 lg:order-none">
+        {selected && currentUrl ? (
+          <div className="lg:sticky lg:top-4">
+            <div className="bg-black rounded-lg overflow-hidden" style={{ aspectRatio: "16/9" }}>
+              <video
+                ref={videoRef}
+                className="w-full h-full"
+                controls
+                playsInline
+                poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='9' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%23000'/%3E%3C/svg%3E"
+              />
             </div>
-            <button onClick={closePlayer} className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-gray-400 hover:bg-[#243824]">
-              Close
-            </button>
-          </div>
 
-          <div className="relative bg-black rounded-lg overflow-hidden" style={{ aspectRatio: "16/9" }}>
-            <video
-              ref={videoRef}
-              className="w-full h-full"
-              controls
-              playsInline
-              poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='9' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%23000'/%3E%3C/svg%3E"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 mt-3 flex-wrap">
-            <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-xs text-red-400 font-medium">LIVE</span>
-
-            {streamError && hasBackup && (
-              <>
-                <span className="text-xs text-yellow-400 ml-2">Stream failed</span>
-                <button
-                  onClick={retryWithNext}
-                  className="text-xs px-3 py-1.5 rounded font-medium bg-yellow-900 text-yellow-200 hover:bg-yellow-800"
-                >
-                  Retry (backup {urlIndex + 1}/{selected.urls.length})
-                </button>
-              </>
-            )}
-
-            {streamError && !hasBackup && (
+            {/* Player controls */}
+            <div className="flex items-center gap-2 mt-3 flex-wrap">
               <button
-                onClick={retryWithNext}
+                onClick={prevChannel}
+                disabled={currentIndex <= 0}
+                className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-gray-300 hover:bg-[#243824] disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                ◄ Prev
+              </button>
+
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold truncate">{selected.name}</p>
+                <p className="text-xs text-gray-500 truncate">{selected.group}</p>
+              </div>
+
+              <button
+                onClick={nextChannel}
+                disabled={currentIndex < 0 || currentIndex >= filtered.length - 1}
+                className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-gray-300 hover:bg-[#243824] disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Next ►
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-xs text-red-400 font-medium">LIVE</span>
+
+              {streamError && (
+                <span className="text-xs text-yellow-400 ml-1">Stream failed</span>
+              )}
+
+              {hasBackup && (
+                <span className="text-xs text-gray-500">
+                  {selected.urls.length} source{selected.urls.length > 1 ? "s" : ""}
+                </span>
+              )}
+
+              <button
+                onClick={() => { destroyPlayer(); setUseProxy(!useProxy); }}
+                className={`text-xs px-3 py-1.5 rounded font-medium transition-colors ${
+                  useProxy
+                    ? "bg-[#4ade80] text-black"
+                    : "bg-[#1a2e1a] text-gray-400 hover:bg-[#243824]"
+                }`}
+                title="Route stream through server to bypass ISP blocks"
+              >
+                {useProxy ? "Proxy ON" : "Proxy"}
+              </button>
+
+              <button
+                onClick={closePlayer}
                 className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-gray-400 hover:bg-[#243824]"
               >
-                Retry
+                Close
               </button>
-            )}
-
-            {hasBackup && !streamError && (
-              <span className="text-xs text-gray-500 ml-2">
-                {selected.urls.length} source{selected.urls.length > 1 ? "s" : ""}
-              </span>
-            )}
-
-            <button
-              onClick={() => { destroyPlayer(); setUseProxy(!useProxy); }}
-              className={`text-xs px-3 py-1.5 rounded font-medium transition-colors ${
-                useProxy
-                  ? "bg-[#4ade80] text-black"
-                  : "bg-[#1a2e1a] text-gray-400 hover:bg-[#243824]"
-              }`}
-              title="Route stream through server to bypass ISP blocks"
-            >
-              {useProxy ? "Proxy ON" : "Proxy"}
-            </button>
-
-
+            </div>
           </div>
-        </div>
-      )}
-
-      <div className="mb-4 space-y-2">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search channels..."
-          className="w-full bg-[#1a2e1a] border border-[#2a4a2a] rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-[#4ade80] transition-colors"
-        />
-        {deadCount > 0 && (
-          <p className="text-xs text-gray-500">
-            {filtered.length} channel{filtered.length !== 1 ? "s" : ""} available
-            <span className="text-gray-600"> · {deadCount} hidden (unavailable)</span>
-            <span className="text-gray-600"> · </span>
-            <button
-              onClick={() => setDeadChannels(new Set())}
-              className="text-[#4ade80] hover:underline"
-            >
-              reset
-            </button>
-          </p>
+        ) : (
+          <div className="hidden lg:flex lg:sticky lg:top-4 items-center justify-center rounded-lg border border-dashed border-[#2a4a2a] min-h-[300px] text-gray-500">
+            <div className="text-center">
+              <p className="text-4xl mb-2 opacity-30">[ ]</p>
+              <p className="text-sm">
+                {filtered.length === 0
+                  ? "No channels available"
+                  : "Select a channel to start watching"}
+              </p>
+            </div>
+          </div>
         )}
       </div>
 
-      {loading && (
-        <div className="flex items-center justify-center py-20 text-gray-500">
-          <LoadingSpinner text="Loading channels..." />
-        </div>
-      )}
-
-      {error && <ErrorCard message={error} />}
-
-      {!loading && !error && filtered.length === 0 && (
-        <div className="text-center py-20 text-gray-500">
-          <p className="text-4xl mb-3 opacity-30">[ ]</p>
-          <p>
-            {query
-              ? "No channels match your search"
-              : deadCount > 0
-                ? `All ${channels.length} channels were unavailable — try again later`
-                : "No sports channels available"}
-          </p>
-        </div>
-      )}
-
-      {!loading && !error && filtered.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {groups.length > 1 && !query ? (
-            groups.map((group) => (
-              <div key={group} className="col-span-full">
-                <h3 className="text-xs font-mono text-gray-500 uppercase tracking-widest mb-2 mt-2 first:mt-0">
-                  {group}
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {filtered.filter((c) => c.group === group).map((ch, i) => (
-                    <ChannelCard key={`${ch.tvgId || ch.name}-${i}`} channel={ch} onSelect={selectChannel} />
-                  ))}
-                </div>
+      {/* Right: Channel Sidebar */}
+      <div ref={sidebarRef} className="w-full lg:w-80 shrink-0 order-none lg:order-1">
+        <div className="lg:sticky lg:top-4 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+          {/* Mobile player (shows above sidebar on small screens) */}
+          {selected && currentUrl && (
+            <div className="lg:hidden mb-4">
+              <div className="bg-black rounded-lg overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                <video
+                  ref={videoRef}
+                  className="w-full h-full"
+                  controls
+                  playsInline
+                  poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='9' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%23000'/%3E%3C/svg%3E"
+                />
               </div>
-            ))
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <button
+                  onClick={prevChannel}
+                  disabled={currentIndex <= 0}
+                  className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-gray-300 hover:bg-[#243824] disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  ◄ Prev
+                </button>
+                <span className="text-xs font-medium truncate flex-1">{selected.name}</span>
+                <button
+                  onClick={nextChannel}
+                  disabled={currentIndex < 0 || currentIndex >= filtered.length - 1}
+                  className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-gray-300 hover:bg-[#243824] disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Next ►
+                </button>
+                <button
+                  onClick={() => { destroyPlayer(); setUseProxy(!useProxy); }}
+                  className={`text-xs px-3 py-1.5 rounded font-medium transition-colors ${
+                    useProxy ? "bg-[#4ade80] text-black" : "bg-[#1a2e1a] text-gray-400"
+                  }`}
+                >
+                  {useProxy ? "Proxy ON" : "Proxy"}
+                </button>
+                <button onClick={closePlayer} className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-gray-400">Close</button>
+              </div>
+              {streamError && (
+                <p className="text-xs text-yellow-400 mt-1">Stream failed — try a different channel</p>
+              )}
+            </div>
+          )}
+
+          <h2 className="text-sm font-bold mb-2">
+            Channels
+            {filtered.length > 0 && (
+              <span className="text-xs font-normal text-gray-500 ml-2">({filtered.length})</span>
+            )}
+          </h2>
+
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search channels..."
+            className="w-full bg-[#1a2e1a] border border-[#2a4a2a] rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-[#4ade80] transition-colors mb-3"
+          />
+
+          {deadCount > 0 && (
+            <p className="text-xs text-gray-500 mb-2">
+              <button
+                onClick={() => setDeadChannels(new Set())}
+                className="text-[#4ade80] hover:underline"
+              >
+                reset
+              </button>
+              <span className="text-gray-600"> · {deadCount} hidden</span>
+            </p>
+          )}
+
+          {filtered.length === 0 ? (
+            <div className="text-center py-10 text-gray-500">
+              <p className="text-sm">
+                {query
+                  ? "No channels match your search"
+                  : deadCount > 0
+                    ? `All ${channels.length} channels were unavailable`
+                    : "No channels available"}
+              </p>
+            </div>
           ) : (
-            filtered.map((ch, i) => (
-              <ChannelCard key={`${ch.tvgId || ch.name}-${i}`} channel={ch} onSelect={selectChannel} />
-            ))
+            <div className="space-y-1">
+              {filtered.map((ch, i) => (
+                <ChannelCard
+                  key={`${ch.tvgId || ch.name}-${i}`}
+                  channel={ch}
+                  isSelected={selected?.name === ch.name}
+                  onSelect={selectChannel}
+                />
+              ))}
+            </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
-function ChannelCard({ channel, onSelect }: { channel: Channel; onSelect: (c: Channel) => void }) {
+function ChannelCard({
+  channel,
+  isSelected,
+  onSelect,
+}: {
+  channel: Channel;
+  isSelected: boolean;
+  onSelect: (c: Channel) => void;
+}) {
   return (
     <button
+      data-channel={channel.name}
       onClick={() => onSelect(channel)}
-      className="card p-3 flex items-center gap-3 text-left hover:border-[#4ade80] transition-colors"
+      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-colors ${
+        isSelected
+          ? "bg-[#1a3a1a] border border-[#4ade80]"
+          : "bg-[#0f1a0f] border border-transparent hover:bg-[#1a2e1a]"
+      }`}
     >
       {channel.logo ? (
-        <img src={channel.logo} alt="" className="w-10 h-10 object-contain rounded shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        <img
+          src={channel.logo}
+          alt=""
+          className="w-8 h-8 object-contain rounded shrink-0"
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+        />
       ) : (
-        <div className="w-10 h-10 rounded bg-[#1a2e1a] flex items-center justify-center shrink-0">
-          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-8 h-8 rounded bg-[#1a2e1a] flex items-center justify-center shrink-0">
+          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium truncate">{channel.name}</p>
-        <p className="text-xs text-gray-500 truncate flex items-center gap-1">
-          {channel.group}
-          {channel.urls.length > 1 && (
-            <span className="text-[10px] text-[#4ade80]">({channel.urls.length} sources)</span>
-          )}
+        <p className={`text-xs font-medium truncate ${isSelected ? "text-[#4ade80]" : "text-gray-200"}`}>
+          {channel.name}
         </p>
+        <p className="text-[10px] text-gray-600 truncate">{channel.group}</p>
       </div>
+      {isSelected && (
+        <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] animate-pulse shrink-0" />
+      )}
+      {channel.urls.length > 1 && !isSelected && (
+        <span className="text-[10px] text-gray-600 shrink-0">+{channel.urls.length - 1}</span>
+      )}
     </button>
   );
 }

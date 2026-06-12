@@ -4,16 +4,64 @@ import { CURATED_CHANNELS } from "@/lib/curated-channels";
 const SOURCES = [
   "https://iptv-org.github.io/iptv/index.m3u",
   "https://iptv-org.github.io/iptv/categories/sports.m3u",
+  "https://romaxa55.github.io/world_ip_tv/output/index.m3u",
+  "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8",
 ];
 
-const SPORTS_KEYWORDS = [
-  "sport", "espn", "fox sport", "nfl", "nba", "mlb", "nhl", "ufc", "wwe",
-  "f1", "motogp", "bein sports", "elevensports", "elevensport",
-  "sky sport", "tnt sport", "eurosport", "world cup", "fifa",
+const WORLD_CUP_KEYWORDS = [
+  "world cup", "fifa", "wc 2026", "2026",
+];
+
+const BROADCASTER_KEYWORDS = [
+  "fox sport", "fs1", "fs2",
+  "espn", "espn2", "espn 2", "abc",
+  "telemundo", "universo", "peacock",
+  "itvx", "itv", "itv4",
+  "bbc", "bbc one", "bbc two", "bbc1", "bbc2",
+  "sbs", "rds", "tsn",
+  "cazé tv", "caze tv", "caze",
+  "bein sports", "beın sports", "beinsport", "beın",
+  "tnt sport", "tnt",
+  "sky sport", "sky sports",
+  "eurosport", "euro sport",
+  "rtve", "tele deporte", "teledeporte", "la 1",
+  "orf", "orf1", "orf sport",
+  "ard", "daserste", "das erste", "zdf",
+  "nrk", "nrk1", "nrk2",
+  "svt", "svt1", "svt2",
+  "srf", "rts", "rsi",
+  "tvp", "tvp sport",
+  "hrt",
+  "rté", "rte", "rte2",
+  "rai", "rai sport",
+  "yle",
+  "npo", "nos",
+  "dr", "tv2",
+  "tudn", "vix",
+  "canal 5", "las estrellas",
+  "dgo", "dsports", "directv sport",
+  "claro sports",
+  "sports18", "viacom18", "jiocinema",
+  "s sport", "ssport",
+  "trt", "trt1", "trt spor",
+  "al kass", "alkass",
+  "abu dhabi sport",
+  "cctv5",
+  "cbs sport",
+  "nbc sport",
+  "gol tv",
+  "band sports",
+  "sport tv",
+  "eleven sport",
+  "optus sport",
+  "supersport",
+  "canal+ sport",
+  "multimedios",
+  "sky mexico",
 ];
 
 const SPORTS_GROUPS = [
-  "sport", "football", "soccer", "motorsport", "football (soccer)",
+  "sport", "football", "soccer", "motorsport",
 ];
 
 interface ParsedChannel {
@@ -89,7 +137,7 @@ function normalizeName(name: string): string {
     .trim();
 }
 
-function isSport(entry: ParsedChannel): boolean {
+function isWorldCupRelevant(entry: ParsedChannel): boolean {
   const name = entry.name.toLowerCase();
   const group = entry.group.toLowerCase();
 
@@ -97,7 +145,11 @@ function isSport(entry: ParsedChannel): boolean {
     if (group.includes(kw)) return true;
   }
 
-  for (const kw of SPORTS_KEYWORDS) {
+  for (const kw of WORLD_CUP_KEYWORDS) {
+    if (name.includes(kw)) return true;
+  }
+
+  for (const kw of BROADCASTER_KEYWORDS) {
     if (name.includes(kw)) return true;
   }
 
@@ -123,11 +175,11 @@ async function fetchChannels(): Promise<MergedChannel[]> {
     }
   }
 
-  const sports = allParsed.filter(isSport);
+  const filtered = allParsed.filter(isWorldCupRelevant);
 
   const map = new Map<string, MergedChannel>();
 
-  for (const ch of sports) {
+  for (const ch of filtered) {
     const key = normalizeName(ch.name);
     const existing = map.get(key);
 
