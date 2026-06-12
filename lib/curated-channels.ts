@@ -25,28 +25,4 @@ export const CURATED_CHANNELS: CuratedChannel[] = [
       "https://tvsen7.aynaott.com/foxsports2/index.m3u8",
     ],
   },
-  {
-    name: "Rai Sport HD",
-    logo: "https://i.imgur.com/6PEevOM.png",
-    group: "World Cup 2026",
-    urls: [
-      "https://srv1.adriatelekom.com/RaiSport/index.m3u8",
-    ],
-  },
-  {
-    name: "Rai Sport 2",
-    logo: "https://i.imgur.com/6PEevOM.png",
-    group: "World Cup 2026",
-    urls: [
-      "http://originstream12.rai.it/italy/raisport2_1200/master.m3u8",
-    ],
-  },
-  {
-    name: "Rai News 24",
-    logo: "https://i.imgur.com/n2u57y3.png",
-    group: "News",
-    urls: [
-      "https://rainews1-live.akamaized.net/hls/live/598326/rainews1/rainews1/playlist.m3u8",
-    ],
-  },
 ];

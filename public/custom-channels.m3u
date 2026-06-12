@@ -3,9 +3,3 @@
 https://d1jzu95oc8fgt3.cloudfront.net/FOX_Sports.m3u8
 #EXTINF:-1 tvg-id="FOXSports2.us" tvg-logo="https://iptv-org.github.io/iptv/logos/foxsports2.png" group-title="Sports",FOX Sports 2 (USA)
 https://jfk01-10gbe.fscdn.fun/foxsports2/tracks-v1a1/mono.m3u8
-#EXTINF:-1 tvg-id="RaiSport.it@HD" tvg-logo="https://i.imgur.com/6PEevOM.png" group-title="Sports",Rai Sport HD
-https://srv1.adriatelekom.com/RaiSport/index.m3u8
-#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Sports",Rai Sport 2
-http://originstream12.rai.it/italy/raisport2_1200/master.m3u8
-#EXTINF:-1 tvg-id="RaiNews24.it@SD" tvg-logo="https://i.imgur.com/n2u57y3.png" group-title="News",Rai News 24
-https://rainews1-live.akamaized.net/hls/live/598326/rainews1/rainews1/playlist.m3u8
