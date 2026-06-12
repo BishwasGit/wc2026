@@ -86,15 +86,15 @@ export default function MatchCard({ match, showPredict = false }: { match: Match
           <span className="text-xs text-gray-500 flex-1">Your prediction:</span>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              <button onClick={() => setHomeGoals(Math.max(0, homeGoals - 1))} className="w-6 h-6 rounded bg-[#1a2e1a] text-[#4ade80] text-xs flex items-center justify-center hover:bg-[#243824]">&minus;</button>
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHomeGoals(Math.max(0, homeGoals - 1)); }} className="w-6 h-6 rounded bg-[#1a2e1a] text-[#4ade80] text-xs flex items-center justify-center hover:bg-[#243824]">&minus;</button>
               <span className="font-mono w-5 text-center text-sm">{homeGoals}</span>
-              <button onClick={() => setHomeGoals(homeGoals + 1)} className="w-6 h-6 rounded bg-[#1a2e1a] text-[#4ade80] text-xs flex items-center justify-center hover:bg-[#243824]">+</button>
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHomeGoals(homeGoals + 1); }} className="w-6 h-6 rounded bg-[#1a2e1a] text-[#4ade80] text-xs flex items-center justify-center hover:bg-[#243824]">+</button>
             </div>
             <span className="text-gray-600 text-xs">:</span>
             <div className="flex items-center gap-1">
-              <button onClick={() => setAwayGoals(Math.max(0, awayGoals - 1))} className="w-6 h-6 rounded bg-[#1a2e1a] text-[#4ade80] text-xs flex items-center justify-center hover:bg-[#243824]">&minus;</button>
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setAwayGoals(Math.max(0, awayGoals - 1)); }} className="w-6 h-6 rounded bg-[#1a2e1a] text-[#4ade80] text-xs flex items-center justify-center hover:bg-[#243824]">&minus;</button>
               <span className="font-mono w-5 text-center text-sm">{awayGoals}</span>
-              <button onClick={() => setAwayGoals(awayGoals + 1)} className="w-6 h-6 rounded bg-[#1a2e1a] text-[#4ade80] text-xs flex items-center justify-center hover:bg-[#243824]">+</button>
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setAwayGoals(awayGoals + 1); }} className="w-6 h-6 rounded bg-[#1a2e1a] text-[#4ade80] text-xs flex items-center justify-center hover:bg-[#243824]">+</button>
             </div>
           </div>
           <button
