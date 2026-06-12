@@ -3,3 +3,5 @@
 https://d1jzu95oc8fgt3.cloudfront.net/FOX_Sports.m3u8
 #EXTINF:-1 tvg-id="FOXSports2.us" tvg-logo="https://iptv-org.github.io/iptv/logos/foxsports2.png" group-title="Sports",FOX Sports 2 (USA)
 https://jfk01-10gbe.fscdn.fun/foxsports2/tracks-v1a1/mono.m3u8
+#EXTINF:-1 tvg-id="" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/FIFA%2B_logo.svg/256px-FIFA%2B_logo.svg.png" group-title="World Cup 2026",FIFA+ (World Cup)
+https://a62dad94.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWV1VfRklGQVBsdXNFbmdsaXNoX0hMUw/playlist.m3u8
