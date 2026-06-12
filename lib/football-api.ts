@@ -34,7 +34,7 @@ export async function getTodayMatches() {
 }
 
 export async function getMatch(id: string) {
-  return fetchFD(`/competitions/${WC_ID}/matches/${id}`, 30_000);
+  return fetchFD(`/matches/${id}`, 30_000);
 }
 
 export async function getStandings() {

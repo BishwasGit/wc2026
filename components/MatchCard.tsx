@@ -30,7 +30,9 @@ export default function MatchCard({ match, showPredict = false }: { match: Match
   const isFinished = match.status === "FINISHED";
   const canPredict = !isFinished && showPredict;
 
-  function handleSave() {
+  function handleSave(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
     savePrediction({ matchId: match.id, homeScore: homeGoals, awayScore: awayGoals });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
