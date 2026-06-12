@@ -25,4 +25,12 @@ export const CURATED_CHANNELS: CuratedChannel[] = [
       "https://tvsen7.aynaott.com/foxsports2/index.m3u8",
     ],
   },
+  {
+    name: "FIFA+ (World Cup)",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/FIFA%2B_logo.svg/256px-FIFA%2B_logo.svg.png",
+    group: "World Cup 2026",
+    urls: [
+      "https://a62dad94.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWV1VfRklGQVBsdXNFbmdsaXNoX0hMUw/playlist.m3u8",
+    ],
+  },
 ];
