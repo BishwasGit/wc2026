@@ -9,9 +9,9 @@ export default function PredictContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/matches?status=SCHEDULED")
+    fetch("/api/matches")
       .then((r) => r.json())
-      .then((d) => setMatches((d.matches || []).filter((m: Match) => m.status === "SCHEDULED").slice(0, 20)))
+      .then((d) => setMatches((d.matches || []).filter((m: Match) => m.status !== "FINISHED" && m.status !== "IN_PLAY" && m.status !== "LIVE" && m.status !== "PAUSED").slice(0, 20)))
       .finally(() => setLoading(false));
   }, []);
 
