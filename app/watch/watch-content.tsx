@@ -11,6 +11,7 @@ type Channel = {
   logo: string;
   group: string;
   urls: string[];
+  type?: "hls" | "web" | "external";
 };
 
 export default function WatchContent() {
@@ -70,8 +71,12 @@ export default function WatchContent() {
   }, [selected, filtered]);
 
   const rawUrl = selected ? selected.urls[urlIndex] : null;
-  const currentUrl = useProxy && rawUrl ? `${proxyBase}?url=${encodeURIComponent(rawUrl)}` : rawUrl;
-  const hasBackup = selected && selected.urls.length > 1;
+  const isWeb = selected?.type === "web" || selected?.type === "external";
+  const currentUrl = !isWeb && useProxy && rawUrl
+    ? `${proxyBase}?url=${encodeURIComponent(rawUrl)}`
+    : rawUrl;
+  const hasBackup = !isWeb && selected && selected.urls.length > 1;
+  const isWebSource = selected?.type === "web" || selected?.type === "external";
 
   function destroyPlayer() {
     if (hlsRef.current) {
@@ -126,6 +131,7 @@ export default function WatchContent() {
 
   useEffect(() => {
     if (!selected || !videoRef.current || streamError) return;
+    if (selected.type === "web" || selected.type === "external") return;
 
     const videoEl = videoRef.current;
     const url = useProxy && selected.urls[urlIndex]
@@ -150,7 +156,7 @@ export default function WatchContent() {
           videoEl.play().catch(() => {});
         });
         hls.on(Hls.Events.ERROR, (_event, data) => {
-          onError();
+          if (data.fatal) onError();
         });
         videoEl.addEventListener("error", onError, { once: true });
       } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
@@ -170,7 +176,7 @@ export default function WatchContent() {
   }, [selected, urlIndex, streamError, useProxy, proxyBase]);
 
   useEffect(() => {
-    if (!streamError || !selected) return;
+    if (!streamError || !selected || isWebSource) return;
     const next = urlIndex + 1;
     if (next < selected.urls.length) {
       const t = setTimeout(() => {
@@ -178,17 +184,8 @@ export default function WatchContent() {
         setUrlIndex(next);
       }, 2000);
       return () => clearTimeout(t);
-    } else {
-      markChannelDead(selected.name);
-      const t = setTimeout(() => {
-        destroyPlayer();
-        setSelected(null);
-        setUrlIndex(0);
-        setStreamError(false);
-      }, 500);
-      return () => clearTimeout(t);
     }
-  }, [streamError, selected, urlIndex]);
+  }, [streamError, selected, urlIndex, isWebSource]);
 
   if (loading) {
     return (
@@ -206,13 +203,25 @@ export default function WatchContent() {
       <div className="flex-1 min-w-0">
         {selected && currentUrl ? (
           <div className="sticky top-0 lg:top-4 z-10 bg-[#0a0f0a] pb-2">
-            <div className="bg-black rounded-lg overflow-hidden" style={{ aspectRatio: "16/9" }}>
-              <video
-                ref={videoRef}
-                className="w-full h-full object-contain"
-                controls
-                playsInline
-              />
+            <div className="bg-black rounded-lg overflow-hidden h-[500px] lg:h-[600px]">
+              {isWebSource ? (
+                <iframe
+                  src={currentUrl}
+                  className="w-full h-full"
+                  allow="autoplay; encrypted-media; fullscreen"
+                  allowFullScreen
+                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                  referrerPolicy="no-referrer"
+                  title={selected.name}
+                />
+              ) : (
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-contain"
+                  controls
+                  playsInline
+                />
+              )}
             </div>
 
             <div className="flex items-center gap-2 mt-2 flex-wrap">
@@ -225,7 +234,7 @@ export default function WatchContent() {
               </button>
 
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate">{selected.name}</p>
+                <p className="text-sm font-semibold truncate">{selected?.name}</p>
                 <p className="text-xs text-gray-500 truncate">{selected.group}</p>
               </div>
 
@@ -242,8 +251,27 @@ export default function WatchContent() {
               <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
               <span className="text-xs text-red-400 font-medium">LIVE</span>
 
+              {isWebSource && (
+                <a
+                  href={selected.urls[0]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-[#4ade80] hover:bg-[#243824] hover:underline"
+                >
+                  Open in new tab ↗
+                </a>
+              )}
+
               {streamError && (
-                <span className="text-xs text-yellow-400 ml-1">Stream failed</span>
+                <>
+                  <span className="text-xs text-yellow-400">Stream failed</span>
+                  <button
+                    onClick={retryWithNext}
+                    className="text-xs px-3 py-1.5 rounded font-medium bg-[#1a2e1a] text-[#4ade80] hover:bg-[#243824]"
+                  >
+                    Retry
+                  </button>
+                </>
               )}
 
               {hasBackup && (
@@ -252,17 +280,19 @@ export default function WatchContent() {
                 </span>
               )}
 
-              <button
-                onClick={() => { destroyPlayer(); setUseProxy(!useProxy); }}
-                className={`text-xs px-3 py-1.5 rounded font-medium transition-colors ${
-                  useProxy
-                    ? "bg-[#4ade80] text-black"
-                    : "bg-[#1a2e1a] text-gray-400 hover:bg-[#243824]"
-                }`}
-                title="Route stream through server to bypass ISP blocks"
-              >
-                {useProxy ? "Proxy ON" : "Proxy"}
-              </button>
+              {!isWebSource && (
+                <button
+                  onClick={() => { destroyPlayer(); setUseProxy(!useProxy); }}
+                  className={`text-xs px-3 py-1.5 rounded font-medium transition-colors ${
+                    useProxy
+                      ? "bg-[#4ade80] text-black"
+                      : "bg-[#1a2e1a] text-gray-400 hover:bg-[#243824]"
+                  }`}
+                  title="Route stream through server to bypass ISP blocks"
+                >
+                  {useProxy ? "Proxy ON" : "Proxy"}
+                </button>
+              )}
 
               <button
                 onClick={closePlayer}
@@ -273,7 +303,7 @@ export default function WatchContent() {
             </div>
           </div>
         ) : (
-          <div className="hidden lg:flex lg:sticky lg:top-4 items-center justify-center rounded-lg border border-dashed border-[#2a4a2a] min-h-[300px] text-gray-500">
+          <div className="hidden lg:flex lg:sticky lg:top-4 items-center justify-center rounded-lg border border-dashed border-[#2a4a2a] h-[500px] lg:h-[600px] text-gray-500">
             <div className="text-center">
               <p className="text-4xl mb-2 opacity-30">[ ]</p>
               <p className="text-sm">
@@ -380,16 +410,17 @@ function ChannelCard({
       )}
       <div className="min-w-0 flex-1">
         <p className={`text-xs font-medium truncate ${isSelected ? "text-[#4ade80]" : "text-gray-200"}`}>
-          {channel.name}
+          {channel.name === "PPV.to" ? "ptv" : channel.name}
         </p>
         <p className="text-[10px] text-gray-600 truncate">{channel.group}</p>
       </div>
-      {isSelected && (
+      {channel.type === "web" || channel.type === "external" ? (
+        <span className="text-[10px] text-[#4ade80] font-medium shrink-0">WEB</span>
+      ) : isSelected ? (
         <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] animate-pulse shrink-0" />
-      )}
-      {channel.urls.length > 1 && !isSelected && (
+      ) : channel.urls.length > 1 ? (
         <span className="text-[10px] text-gray-600 shrink-0">+{channel.urls.length - 1}</span>
-      )}
+      ) : null}
     </button>
   );
 }

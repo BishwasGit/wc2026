@@ -141,7 +141,7 @@ export default function HomeContent() {
 
       {!loading && tab !== "all" && (
         <div className="flex flex-col gap-3">
-          {matches.map((m) => <MatchCard key={m.id} match={m} />)}
+          {matches.map((m) => <MatchCard key={m.id} match={m} showWatch />)}
         </div>
       )}
 

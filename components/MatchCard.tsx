@@ -20,7 +20,7 @@ function formatDate(utcDate: string) {
   return new Date(utcDate).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
 }
 
-export default function MatchCard({ match, showPredict = false }: { match: Match; showPredict?: boolean }) {
+export default function MatchCard({ match, showPredict = false, showWatch = false }: { match: Match; showPredict?: boolean; showWatch?: boolean }) {
   const existing = typeof window !== "undefined" ? getPredictionForMatch(match.id) : null;
   const [homeGoals, setHomeGoals] = useState(existing?.homeScore ?? 0);
   const [awayGoals, setAwayGoals] = useState(existing?.awayScore ?? 0);
@@ -78,8 +78,23 @@ export default function MatchCard({ match, showPredict = false }: { match: Match
 
       <div className="flex items-center gap-1 text-xs text-gray-500 mt-3">
         {isLive && <span className="text-red-400 font-medium">Watch Live</span>}
-        {!isLive && <>View details <span className="text-[10px]">&rarr;</span></>}
+        {!isLive && !isFinished && (showWatch ? null : <>View details <span className="text-[10px]">&rarr;</span></>)}
+        {isFinished && <>View details <span className="text-[10px]">&rarr;</span></>}
       </div>
+
+      {showWatch && !isFinished && (
+        <div className="mt-3 pt-3 border-t border-[#1a2e1a]" onClick={(e) => e.stopPropagation()}>
+          <Link
+            href={`/watch/from-match/${match.id}`}
+            className="inline-flex items-center gap-1.5 text-xs px-4 py-2 rounded font-medium bg-gradient-to-r from-[#4ade80] to-[#22c55e] text-black hover:from-[#22c55e] hover:to-[#16a34a] transition-all w-full justify-center"
+          >
+            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            Watch Stream
+          </Link>
+        </div>
+      )}
 
       {canPredict && (
         <div className="mt-4 pt-3 border-t border-[#1a2e1a] flex items-center gap-3" onClick={(e) => e.stopPropagation()}>

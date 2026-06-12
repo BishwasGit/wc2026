@@ -138,7 +138,7 @@ function MatchDetailView({ match }: { match: Match }) {
 
       {isLive && (
         <a
-          href="/watch"
+          href={`/watch/from-match/${match.id}`}
           className="card p-5 flex items-center justify-between hover:border-[#4ade80] transition-colors"
         >
           <div>

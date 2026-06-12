@@ -4,8 +4,10 @@ import { CURATED_CHANNELS } from "@/lib/curated-channels";
 const SOURCES = [
   "https://iptv-org.github.io/iptv/index.m3u",
   "https://iptv-org.github.io/iptv/categories/sports.m3u",
+  "https://iptv-org.github.io/iptv/channels/us.m3u",
   "https://romaxa55.github.io/world_ip_tv/output/index.m3u",
   "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8",
+  "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlists/2025/news.m3u8",
 ];
 
 const WORLD_CUP_KEYWORDS = [
@@ -78,6 +80,7 @@ interface MergedChannel {
   logo: string;
   group: string;
   urls: string[];
+  type?: "hls" | "web" | "external";
 }
 
 let cache: { data: MergedChannel[]; ts: number } | null = null;
@@ -209,12 +212,14 @@ async function fetchChannels(): Promise<MergedChannel[]> {
           existing.urls.push(url);
         }
       }
+      if (ch.type) existing.type = ch.type;
     } else {
       map.set(key, {
         tvgId: "",
         name: ch.name,
         logo: ch.logo,
         group: ch.group,
+        type: ch.type,
         urls: [...ch.urls],
       });
     }
