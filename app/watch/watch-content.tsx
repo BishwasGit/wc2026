@@ -150,8 +150,9 @@ export default function WatchContent() {
           videoEl.play().catch(() => {});
         });
         hls.on(Hls.Events.ERROR, (_event, data) => {
-          if (data.fatal) onError();
+          onError();
         });
+        videoEl.addEventListener("error", onError, { once: true });
       } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
         videoEl.src = url;
         videoEl.addEventListener("error", onError, { once: true });
