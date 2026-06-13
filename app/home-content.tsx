@@ -153,7 +153,7 @@ export default function HomeContent() {
                 {new Date(date).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}
               </h2>
               <div className="flex flex-col gap-3">
-                {dayMatches.map((m) => <MatchCard key={m.id} match={m} />)}
+                {dayMatches.map((m) => <MatchCard key={m.id} match={m} showWatch />)}
               </div>
             </div>
           ))}

@@ -85,7 +85,7 @@ export default function MatchCard({ match, showPredict = false, showWatch = fals
       {showWatch && !isFinished && (
         <div className="mt-3 pt-3 border-t border-[#1a2e1a]" onClick={(e) => e.stopPropagation()}>
           <Link
-            href={`/watch/from-match/${match.id}`}
+            href={`/watch/from-match/${match.id}?home=${encodeURIComponent(match.homeTeam.name)}&away=${encodeURIComponent(match.awayTeam.name)}`}
             className="inline-flex items-center gap-1.5 text-xs px-4 py-2 rounded font-medium bg-gradient-to-r from-[#4ade80] to-[#22c55e] text-black hover:from-[#22c55e] hover:to-[#16a34a] transition-all w-full justify-center"
           >
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">

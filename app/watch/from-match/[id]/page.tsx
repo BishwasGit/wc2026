@@ -7,7 +7,14 @@ export const metadata = {
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const match = await getMatch(id);
 
-  return <WatchFromMatchContent match={match} />;
+  let match;
+
+  try {
+    match = await getMatch(id);
+  } catch {
+    match = null;
+  }
+
+  return <WatchFromMatchContent match={match} matchId={id} />;
 }
