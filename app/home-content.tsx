@@ -69,25 +69,7 @@ export default function HomeContent() {
           </h1>
           <p className="text-sm text-gray-500">June 11 - July 19 | USA, Canada, Mexico</p>
         </div>
-        <a
-          href="/watch"
-          className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-xs bg-gradient-to-r from-[#4ade80] to-[#22c55e] text-black hover:from-[#22c55e] hover:to-[#16a34a] transition-all shadow-lg shadow-[#4ade80]/20"
-        >
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
-          </svg>
-          Stream Now
-        </a>
       </div>
-      <a
-        href="/watch"
-        className="sm:hidden mb-4 flex items-center justify-center gap-1.5 w-full px-4 py-2.5 rounded-lg font-semibold text-xs bg-gradient-to-r from-[#4ade80] to-[#22c55e] text-black transition-all"
-      >
-        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M8 5v14l11-7z"/>
-        </svg>
-        Stream Now
-      </a>
 
       <div className="flex gap-1 mb-6 border-b border-[#1a2e1a] pb-0 overflow-x-auto">
         {tabs.map((t) => (
@@ -141,7 +123,7 @@ export default function HomeContent() {
 
       {!loading && tab !== "all" && (
         <div className="flex flex-col gap-3">
-          {matches.map((m) => <MatchCard key={m.id} match={m} showWatch />)}
+          {matches.map((m) => <MatchCard key={m.id} match={m} />)}
         </div>
       )}
 
