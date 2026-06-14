@@ -6,7 +6,6 @@ import Link from "next/link";
 const links = [
   { href: "/", label: "Scores" },
   { href: "/standings", label: "Groups" },
-  { href: "/watch", label: "Watch" },
   { href: "/predict", label: "Predict" },
   { href: "/fantasy", label: "Fantasy" },
   { href: "/leaderboard", label: "Leaderboard" },
