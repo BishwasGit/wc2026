@@ -1,26 +1,67 @@
 import type { Team } from "./types";
 
 const BASE_URL = "https://api.football-data.org/v4";
-const WC_ID = "WC"; // World Cup competition code
+const WC_ID = "WC";
 
-// Simple in-memory cache — avoids hammering the 10 req/min free limit
 const cache = new Map<string, { data: unknown; ts: number }>();
-const CACHE_TTL = 60_000; // 1 min for live, enough for free tier
+const CACHE_TTL = 60_000;
+
+const REQS: number[] = [];
+const MAX_RPM = 9;
+const WINDOW = 60_000;
+const queue: Array<() => void> = [];
+let draining = false;
+
+function drainQueue() {
+  if (draining || queue.length === 0) return;
+  const now = Date.now();
+  const within = REQS.filter((t) => now - t < WINDOW);
+  REQS.length = 0;
+  REQS.push(...within);
+  if (REQS.length >= MAX_RPM) {
+    const wait = WINDOW - (now - REQS[0]) + 100;
+    draining = true;
+    setTimeout(() => { draining = false; drainQueue(); }, wait);
+    return;
+  }
+  const next = queue.shift();
+  if (next) {
+    REQS.push(Date.now());
+    next();
+  }
+}
+
+function enqueue<T>(fn: () => Promise<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    queue.push(async () => { try { resolve(await fn()); } catch (e) { reject(e); } });
+    drainQueue();
+  });
+}
 
 async function fetchFD(path: string, ttl = CACHE_TTL) {
   const key = path;
   const hit = cache.get(key);
   if (hit && Date.now() - hit.ts < ttl) return hit.data;
 
-  const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { "X-Auth-Token": process.env.FOOTBALL_API_KEY || "" },
-    next: { revalidate: 60 },
-  });
+  return enqueue(async () => {
+    const hit2 = cache.get(key);
+    if (hit2 && Date.now() - hit2.ts < ttl) return hit2.data;
 
-  if (!res.ok) throw new Error(`football-data API ${res.status}: ${path}`);
-  const data = await res.json();
-  cache.set(key, { data, ts: Date.now() });
-  return data;
+    const res = await fetch(`${BASE_URL}${path}`, {
+      headers: { "X-Auth-Token": process.env.FOOTBALL_API_KEY || "" },
+      next: { revalidate: 60 },
+    });
+
+    if (res.status === 429) {
+      await new Promise((r) => setTimeout(r, 5000));
+      return fetchFD(path, ttl);
+    }
+
+    if (!res.ok) throw new Error(`football-data API ${res.status}: ${path}`);
+    const data = await res.json();
+    cache.set(key, { data, ts: Date.now() });
+    return data;
+  });
 }
 
 export async function getMatches(status?: "SCHEDULED" | "LIVE" | "FINISHED") {
