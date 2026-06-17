@@ -38,7 +38,7 @@ function enqueue<T>(fn: () => Promise<T>): Promise<T> {
   });
 }
 
-async function fetchFD(path: string, ttl = CACHE_TTL) {
+async function fetchFD(path: string, ttl = CACHE_TTL): Promise<any> {
   const key = path;
   const hit = cache.get(key);
   if (hit && Date.now() - hit.ts < ttl) return hit.data;
