@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorCard from "@/components/ErrorCard";
 import type HlsClass from "hls.js";
+import type { VipRowEvent } from "@/app/api/watch/viprow/route";
 
 type Channel = {
   tvgId: string;
@@ -26,6 +27,8 @@ export default function WatchContent() {
   const [streamError, setStreamError] = useState(false);
   const [useProxy, setUseProxy] = useState(false);
   const [deadChannels, setDeadChannels] = useState<Set<string>>(new Set());
+  const [vipRowEvents, setVipRowEvents] = useState<VipRowEvent[]>([]);
+  const [vipLoading, setVipLoading] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<HlsClass | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -49,6 +52,13 @@ export default function WatchContent() {
       }
     }
     load();
+
+    fetch("/api/watch/viprow")
+      .then((r) => r.json())
+      .then((d) => { if (!cancelled) setVipRowEvents(d.events || []); })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setVipLoading(false); });
+
     return () => { cancelled = true; };
   }, []);
 
@@ -368,6 +378,31 @@ export default function WatchContent() {
                 />
               ))}
             </div>
+          )}
+
+          {vipRowEvents.length > 0 && (
+            <>
+              <div className="border-t border-[#1a2e1a] my-4" />
+              <h2 className="text-sm font-bold mb-2 flex items-center gap-2">
+                VIP Row Events
+                <span className="text-xs font-normal text-gray-500">({vipRowEvents.length})</span>
+              </h2>
+              <div className="space-y-1">
+                {vipRowEvents.map((evt, i) => (
+                  <a
+                    key={i}
+                    href={evt.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-colors bg-[#0f1a0f] border border-transparent hover:bg-[#1a2e1a] block text-xs font-medium text-gray-200"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 shrink-0" />
+                    <span className="truncate">{evt.name}</span>
+                    <span className="text-[10px] text-gray-600 shrink-0 ml-auto">↗</span>
+                  </a>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>
